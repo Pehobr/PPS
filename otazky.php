@@ -4,7 +4,7 @@
  * Description: Šablona pro zobrazení formuláře s otázkami ze soboty a odeslání odpovědí e-mailem.
  */
 
-// --- ZPRACOVÁNÍ FORMULÁŘE ---
+// --- ZPRACOVÁNÍ FORMULÁŘE (UPRAVENO) ---
 $form_sent = false;
 $form_error = '';
 
@@ -13,15 +13,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_questions'])) 
     if (!isset($_POST['question_form_nonce']) || !wp_verify_nonce($_POST['question_form_nonce'], 'submit_questions_action')) {
         $form_error = 'Chyba zabezpečení. Zkuste to prosím znovu.';
     } else {
+        // Načtení a vyčištění dat z formuláře
         $jmeno_prijmeni = sanitize_text_field($_POST['jmeno_prijmeni']);
+        $email_address = sanitize_email($_POST['email_address']); // <-- ZMĚNA: Nové pole pro email
         $odpovedi = $_POST['odpovedi'] ?? [];
 
-        if (empty($jmeno_prijmeni)) {
-            $form_error = 'Prosím, vyplňte vaše jméno a příjmení.';
+        // <-- ZMĚNA: Kontrola povinného e-mailu místo jména
+        if (empty($email_address)) {
+            $form_error = 'Prosím, vyplňte váš e-mail. Je to povinný údaj pro zařazení do slosování.';
+        } elseif (!filter_var($email_address, FILTER_VALIDATE_EMAIL)) {
+            $form_error = 'Prosím, zadejte platnou e-mailovou adresu.';
         } else {
             // Sestavení těla e-mailu
             $email_body = "Nové odpovědi z webového formuláře:\n\n";
-            $email_body .= "Jméno a příjmení: " . $jmeno_prijmeni . "\n";
+            $email_body .= "E-mail odesílatele (pro slosování): " . $email_address . "\n"; // <-- ZMĚNA: Přidán e-mail
+            
+            // <-- ZMĚNA: Jméno se přidá, jen pokud je vyplněné
+            if (!empty($jmeno_prijmeni)) {
+                $email_body .= "Jméno a příjmení: " . $jmeno_prijmeni . "\n";
+            }
+            
             $email_body .= "----------------------------------------\n\n";
 
             foreach ($odpovedi as $index => $odpoved) {
@@ -32,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_questions'])) 
             }
 
             // Nastavení pro e-mail
-            $to = get_option('admin_email'); // E-mail administrátora WordPressu
+            $to = get_option('admin_email');
             $subject = 'Nové odpovědi na sobotní otázky';
             $headers = ['Content-Type: text/plain; charset=UTF-8'];
 
@@ -47,12 +58,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_questions'])) 
 }
 
 
-// --- NAČTENÍ DAT Z GOOGLE SHEETS (stejné jako v tyden.php) ---
+// --- NAČTENÍ DAT Z GOOGLE SHEETS (zůstává stejné) ---
 get_header();
 
 $apiKey = 'AIzaSyDAmhStJ2lEeZG4qiqEpb92YrShfaDY6DE'; // Váš API klíč
 $spreadsheetId = '1ZbaVVX2tJj7kWYczWopJMNZ7oU8YtXcGwp2EKgZ7XQo'; // Vaše ID tabulky
-$range = 'A2:G8'; // Načteme celý týden, abychom našli sobotu
+$range = 'A2:G8';
 $current_domain = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
 $saturday_data = null;
 $error_message = '';
@@ -110,11 +121,11 @@ if (function_exists('curl_init')) {
         <div class="question-form-container">
 
             <h1><?php echo isset($saturday_data[2]) ? e_safe($saturday_data[2]) : 'Otázky k zamyšlení'; ?></h1>
-            <p class="form-description">Vyplňte odpovědi na otázky a odešlete je ke zpracování.</p>
+            <p class="form-description">Odpovězte na otázky a zařaďte se do týdenního slosování o cenu.</p>
 
             <?php if ($form_sent): ?>
                 <div class="form-success-message">
-                    Děkujeme za odeslání odpovědí!
+                    Děkujeme za odeslání odpovědí! Byli jste zařazeni do slosování.
                 </div>
             <?php elseif (!empty($form_error)): ?>
                 <div class="form-error-message">
@@ -134,8 +145,13 @@ if (function_exists('curl_init')) {
                         <?php wp_nonce_field('submit_questions_action', 'question_form_nonce'); ?>
 
                         <div class="form-group">
-                            <label for="jmeno_prijmeni">Jméno a příjmení <span class="required">*</span></label>
-                            <input type="text" id="jmeno_prijmeni" name="jmeno_prijmeni" required>
+                            <label for="jmeno_prijmeni">Jméno a příjmení (nepovinné)</label>
+                            <input type="text" id="jmeno_prijmeni" name="jmeno_prijmeni">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email_address">E-mail <span class="required">*</span></label>
+                            <input type="email" id="email_address" name="email_address" required>
                         </div>
 
                         <?php foreach ($questions as $index => $question): ?>
@@ -147,7 +163,7 @@ if (function_exists('curl_init')) {
                         <?php endforeach; ?>
 
                         <div class="form-submit">
-                            <button type="submit" name="submit_questions">Odeslat odpovědi</button>
+                            <button type="submit" name="submit_questions">Odeslat a zařadit do slosování</button>
                         </div>
                     </form>
                 <?php else: ?>

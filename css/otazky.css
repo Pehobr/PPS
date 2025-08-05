@@ -41,6 +41,7 @@
 }
 
 .questions-form input[type="text"],
+.questions-form input[type="email"],
 .questions-form textarea {
     width: 100%;
     padding: 12px;
