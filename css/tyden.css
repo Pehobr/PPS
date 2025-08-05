@@ -102,3 +102,33 @@ audio {
     border-radius: 5px;
     text-align: center;
 }
+
+/* --- Speciální barvy pro Sobotu a Neděli --- */
+
+/* SOBOTA - OTÁZKY */
+.accordion-button.saturday-btn {
+    background-color: #6A8D92; /* Klidná šedo-modrá */
+    color: #FFFFFF;
+}
+
+.accordion-button.saturday-btn:hover {
+    background-color: #58797E; /* Tmavší odstín pro hover */
+}
+
+.accordion-button.saturday-btn.active {
+    background-color: #4a666a;
+}
+
+/* NEDĚLE - REFLEXE */
+.accordion-button.sunday-btn {
+    background-color: #CCA43B; /* Tlumená zlatá */
+    color: #FFFFFF;
+}
+
+.accordion-button.sunday-btn:hover {
+    background-color: #B99335; /* Tmavší zlatá pro hover */
+}
+
+.accordion-button.sunday-btn.active {
+    background-color: #a88330;
+}

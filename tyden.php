@@ -6,7 +6,7 @@
 
 get_header();
 
-// --- NASTAVENÍ ---
+// --- NASTAVENí ---
 $apiKey = 'AIzaSyDAmhStJ2lEeZG4qiqEpb92YrShfaDY6DE'; // Váš API klíč
 $spreadsheetId = '1ZbaVVX2tJj7kWYczWopJMNZ7oU8YtXcGwp2EKgZ7XQo'; // Vaše ID tabulky
 $range = 'A2:G8';
@@ -77,7 +77,18 @@ if (function_exists('curl_init')) {
                     ?>
                     <div class="accordion-item">
                         <h3 class="day-heading"><?php echo e_safe($day_name_cz . ($formatted_date ? ' - ' . $formatted_date : '')); ?></h3>
-                        <button type="button" class="accordion-button"><?php echo e_safe($title); ?></button>
+                        <?php
+                        // OPRAVA ZDE: Nyní se řídíme názvem dne, ne titulkem.
+                        $button_class = 'accordion-button';
+                        if ($day_name_cz === 'Sobota') {
+                            $button_class .= ' saturday-btn';
+                        } elseif ($day_name_cz === 'Neděle') {
+                            $button_class .= ' sunday-btn';
+                        }
+                        ?>
+                        <button type="button" class="<?php echo $button_class; ?>">
+                            <?php echo e_safe($title); ?>
+                        </button>
                         <div class="accordion-content">
                             <div class="content-inner">
                                 <?php if ($has_audio): 
@@ -94,7 +105,6 @@ if (function_exists('curl_init')) {
                                 <?php endif; ?>
 
                                 <?php
-                                // ZMĚNA ZDE: Spolehlivé odstranění prázdných řádků
                                 $lines = preg_split('/\r\n|\r|\n/', $content);
                                 $cleaned_lines = [];
                                 foreach ($lines as $line) {
