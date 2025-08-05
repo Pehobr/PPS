@@ -1,29 +1,29 @@
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("Stránka Týdenního přehledu byla úspěšně načtena.");
+document.addEventListener('DOMContentLoaded', function () {
+    const accordionButtons = document.querySelectorAll('.accordion-button');
 
-    const dayCards = document.querySelectorAll('.day-card.day-reading');
+    accordionButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const content = button.nextElementSibling;
+            const wasActive = button.classList.contains('active');
 
-    dayCards.forEach(card => {
-        card.addEventListener('click', function(event) {
-            // Nespouštět, pokud uživatel kliká přímo na audio přehrávač
-            if (event.target.tagName.toLowerCase() === 'audio' || event.target.closest('audio')) {
-                return;
-            }
-            
-            const audioPlayer = this.querySelector('audio');
-            if (audioPlayer) {
-                // Pokud je audio pozastavené, přehraj ho. Jinak ho pozastav.
-                if (audioPlayer.paused) {
-                    // Pozastavíme všechna ostatní audia na stránce
-                    document.querySelectorAll('audio').forEach(ap => {
-                        if (ap !== audioPlayer) {
-                            ap.pause();
-                        }
-                    });
-                    audioPlayer.play();
-                } else {
-                    audioPlayer.pause();
+            // 1. Zavřít všechny ostatní panely
+            accordionButtons.forEach(btn => {
+                if (btn !== button) {
+                    btn.classList.remove('active');
+                    btn.nextElementSibling.style.maxHeight = null;
                 }
+            });
+
+            // 2. Otevřít nebo zavřít kliknutý panel
+            if (wasActive) {
+                // Pokud byl aktivní, zavřít ho
+                button.classList.remove('active');
+                content.style.maxHeight = null;
+            } else {
+                // Pokud byl zavřený, otevřít ho
+                button.classList.add('active');
+                // Nastavit max-height na skutečnou výšku obsahu
+                content.style.maxHeight = content.scrollHeight + "px";
             }
         });
     });

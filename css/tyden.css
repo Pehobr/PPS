@@ -1,79 +1,86 @@
-/* --- Kontejnery a základní layout --- */
-.container-tyden {
+/* --- Základní kontejner pro akordeon --- */
+.accordion-container {
     max-width: 800px;
-    margin: 20px auto; /* Centrování a mezera od obsahu šablony */
+    margin: 20px auto 40px auto; /* Centrování a mezery */
+    text-align: center; /* Vše vycentrovat */
     background-color: #F5EFE6; /* Barva pergamenu */
+    padding: 20px 30px;
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    padding: 1px; /* Malý padding, aby se vnořené prvky chovaly správně */
+}
+
+.accordion-item {
+    margin-bottom: 20px; /* Mezera mezi dny */
+}
+
+/* --- Nadpis dne a data --- */
+.day-heading {
     font-family: 'Open Sans', sans-serif;
-}
-
-.weekly-overview {
-    padding: 20px 30px;
-}
-
-.footer-tyden {
-    text-align: center;
-    padding: 20px;
-    font-size: 0.9em;
-    color: #777;
-    border-top: 1px solid #EAE0D5;
-}
-
-/* --- Karty pro jednotlivé dny --- */
-.day-card {
-    background-color: #fff;
-    border: 1px solid #EAE0D5;
-    border-radius: 6px;
-    margin-bottom: 25px;
-    padding: 25px;
-    transition: box-shadow 0.3s ease;
-}
-
-.day-card:hover {
-    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.12);
-}
-
-/* --- Hlavička karty --- */
-.day-header {
-    margin-bottom: 15px;
-    border-bottom: 1px solid #EAE0D5;
-    padding-bottom: 15px;
-}
-
-.day-header .date {
-    font-size: 0.9em;
     font-weight: 600;
-    color: #888;
+    color: #555;
+    margin-bottom: 10px;
+    font-size: 1.1em;
 }
 
-.day-header h2 {
+/* --- Tlačítko pro rozbalení --- */
+.accordion-button {
+    background-color: #D88C4B; /* Měděně oranžová */
+    color: #FFFFFF; /* Bílá */
     font-family: 'Lora', serif;
-    margin: 5px 0 0;
-    color: #333;
-    font-size: 1.5em; /* Větší nadpis dne */
+    font-size: 1.3em;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 15px 25px;
+    width: 100%;
+    border: none;
+    text-align: center;
+    outline: none;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
 }
 
-/* --- Odlišení soboty a neděle --- */
-.day-reflection {
-    border-left: 5px solid #D88C4B; /* Měděně oranžová */
+.accordion-button:hover {
+    background-color: #c77b3a; /* Tmavší oranžová pro hover efekt */
 }
 
-.day-reflection .day-header h2 {
-    color: #D88C4B;
+.accordion-button.active {
+    background-color: #b66a2a; /* Ještě tmavší pro aktivní stav */
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
 }
 
-/* --- Obsah a audio --- */
-.day-content p {
-    margin: 0;
-    line-height: 1.7; /* Lepší čitelnost delšího textu */
+.accordion-button:active {
+    transform: scale(0.99); /* Efekt stisknutí */
+}
+
+/* --- Obsah dne (skrytý) --- */
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease-out;
+    background-color: #ffffff;
+    text-align: left; /* Text uvnitř už bude zarovnaný doleva */
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border: 1px solid #ddd;
+    border-top: none;
+    box-shadow: inset 0 3px 5px rgba(0,0,0,0.05);
+}
+
+.content-inner {
+    padding: 25px;
+}
+
+.content-inner p {
+    line-height: 1.7;
+    margin: 0 0 20px 0;
     white-space: pre-wrap;
 }
 
 .day-audio {
     margin-top: 20px;
-    padding-top: 15px;
+    padding-top: 20px;
     border-top: 1px dashed #EAE0D5;
 }
 
