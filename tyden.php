@@ -7,8 +7,8 @@
 get_header();
 
 // --- NASTAVENÍ ---
-$apiKey = 'AIzaSyDAmhStJ2lEeZG4qiqEpb92YrShfaDY6DE'; // Váš API klíč
-$spreadsheetId = '1ZbaVVX2tJj7kWYczWopJMNZ7oU8YtXcGwp2EKgZ7XQo'; // Vaše ID tabulky
+$apiKey = 'AIzaSyDAmhStJ2lEeZG4qiqEpb92YrShfaDY6DE';
+$spreadsheetId = '1ZbaVVX2tJj7kWYczWopJMNZ7oU8YtXcGwp2EKgZ7XQo';
 $range = 'A2:G8';
 $current_domain = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
 
@@ -69,7 +69,7 @@ if (function_exists('curl_init')) {
     } else {
         $error_details = json_decode($json_data, true);
         $google_error = isset($error_details['error']['message']) ? e_safe($error_details['error']['message']) : 'Žádné další detaily.';
-        $error_message = "Chyba při načítání dat z Google API (HTTP kód: ".e_safe($http_code)."). Zkontrolujte nastavení sdílení tabulky a omezení API klíče. Detail od Googlu: ".$google_error;
+        $error_message = "Chyba při načítání dat z Google API (HTTP kód: ".e_safe($http_code)."). Zkontrolujte nastavení. Detail: ".$google_error;
     }
 } else {
     $error_message = "Na serveru chybí cURL rozšíření pro PHP.";
@@ -77,6 +77,7 @@ if (function_exists('curl_init')) {
 ?>
 
 <link rel="stylesheet" id="tyden-css" href="<?php echo get_stylesheet_directory_uri(); ?>/css/tyden.css" type="text/css" media="all" />
+<link rel="stylesheet" id="audio-css" href="<?php echo get_stylesheet_directory_uri(); ?>/css/audio.css" type="text/css" media="all" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
@@ -88,7 +89,6 @@ if (function_exists('curl_init')) {
                 <?php foreach ($values as $row): ?>
                     <?php
                     if (empty(array_filter($row))) continue;
-                    
                     $date = $row[0] ?? '';
                     $day_name_cz = get_czech_day_name($date);
                     $formatted_date = format_czech_date($date);
@@ -100,38 +100,41 @@ if (function_exists('curl_init')) {
                     ?>
                     <div class="accordion-item">
                         <h3 class="day-heading"><?php echo e_safe($day_name_cz . ($formatted_date ? ' - ' . $formatted_date : '')); ?></h3>
-                        <button type="button" class="accordion-button">
-                            <?php echo e_safe($title); ?>
-                        </button>
+                        <button type="button" class="accordion-button"><?php echo e_safe($title); ?></button>
                         <div class="accordion-content">
                             <div class="content-inner">
                                 
-                                <?php // ZMĚNA ZDE: Audio přehrávač je nyní jako první
-                                if ($has_audio): 
-                                    $evangelista_slug = strtolower(trim($audio_evangelista));
-                                    $kapitola_slug = trim($audio_kapitola_vers);
-                                    $full_audio_url = 'https://audiokostel.cz/pps/' . $evangelista_slug . '-' . $kapitola_slug . '.mp3';
+                                <?php if ($has_audio): 
+                                    $full_audio_url = 'https://audiokostel.cz/pps/' . strtolower(trim($audio_evangelista)) . '-' . trim($audio_kapitola_vers) . '.mp3';
                                 ?>
-                                    <div class="day-audio">
-                                        <p class="audio-title">Poslechnout audio:</p>
-                                        <audio controls src="<?php echo esc_url($full_audio_url); ?>">Váš prohlížeč nepodporuje audio.</audio>
+                                    <div class="custom-audio-player-wrapper">
+                                        <div class="custom-audio-player">
+                                            <button class="play-pause-btn paused">
+                                                <i class="fas fa-play"></i>
+                                                <i class="fas fa-pause"></i>
+                                            </button>
+                                            <div class="progress-bar-container">
+                                                <div class="progress-bar-fill"></div>
+                                            </div>
+                                            <div class="volume-container">
+                                                <i class="fas fa-volume-up volume-icon"></i>
+                                                <input type="range" class="volume-slider" min="0" max="1" step="0.05" value="1">
+                                            </div>
+                                        </div>
+                                        <audio src="<?php echo esc_url($full_audio_url); ?>" preload="metadata" style="display: none;"></audio>
                                     </div>
                                 <?php endif; ?>
 
                                 <?php
-                                // Odstranění prázdných řádků z obsahu
                                 $cleaned_content = preg_replace('/(\r\n|\r|\n){2,}/', "\n", $content);
                                 ?>
                                 <p><?php echo nl2br(e_safe($cleaned_content)); ?></p>
-                                
                             </div>
                         </div>
                     </div>
                 <?php endforeach; ?>
             <?php else: ?>
-                <p class="error-message">
-                    <?php echo $error_message ? $error_message : 'Nebylo možné načíst data pro tento týden.'; ?>
-                </p>
+                <p class="error-message"><?php echo $error_message ? $error_message : 'Nebylo možné načíst data.'; ?></p>
             <?php endif; ?>
         </div>
     </main>
