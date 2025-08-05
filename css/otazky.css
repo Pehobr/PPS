@@ -1,0 +1,109 @@
+/* --- Kontejner pro formulář s otázkami --- */
+.question-form-container {
+    max-width: 800px;
+    margin: 20px auto 40px auto;
+    background-color: #F5EFE6;
+    padding: 30px 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    font-family: 'Open Sans', sans-serif;
+}
+
+.question-form-container h1 {
+    text-align: center;
+    font-family: 'Lora', serif;
+    font-weight: 700;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.question-form-container .form-description {
+    text-align: center;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+/* --- Formulářové prvky --- */
+.questions-form .form-group {
+    margin-bottom: 25px;
+}
+
+.questions-form label {
+    display: block;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 8px;
+    font-size: 1.1em;
+}
+
+.questions-form .required {
+    color: #D8000C;
+}
+
+.questions-form input[type="text"],
+.questions-form textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #fff;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 1em;
+    box-sizing: border-box; /* Důležité pro správné rozměry */
+    transition: border-color 0.3s ease;
+}
+
+.questions-form input[type="text"]:focus,
+.questions-form textarea:focus {
+    border-color: #D88C4B;
+    outline: none;
+}
+
+/* --- Tlačítko pro odeslání --- */
+.form-submit {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.form-submit button {
+    background-color: #6A8D92; /* Stejná barva jako sobota */
+    color: #FFFFFF;
+    font-family: 'Lora', serif;
+    font-size: 1.2em;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 12px 30px;
+    border: none;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+.form-submit button:hover {
+    background-color: #58797E;
+}
+
+.form-submit button:active {
+    transform: scale(0.99);
+}
+
+/* --- Zprávy pro uživatele --- */
+.form-error-message, .error-message {
+    color: #D8000C;
+    background-color: #FFD2D2;
+    border: 1px solid #D8000C;
+    padding: 15px;
+    border-radius: 5px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.form-success-message {
+    color: #4F8A10;
+    background-color: #DFF2BF;
+    border: 1px solid #4F8A10;
+    padding: 15px;
+    border-radius: 5px;
+    text-align: center;
+    margin-bottom: 20px;
+}

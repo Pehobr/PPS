@@ -132,3 +132,36 @@ audio {
 .accordion-button.sunday-btn.active {
     background-color: #a88330;
 }
+
+/* --- Tlačítko pro přesměrování na formulář --- */
+.form-link-wrapper {
+    text-align: center; /* Centruje tlačítko */
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px dashed #EAE0D5;
+}
+
+.link-to-form-btn {
+    display: inline-block;
+    background-color: #6A8D92; /* Stejná barva jako sobota accordion */
+    color: #FFFFFF;
+    font-family: 'Lora', serif;
+    font-size: 1.1em;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 10px 25px;
+    border: none;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    text-decoration: none; /* Odstraní podtržení u odkazu */
+    transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+.link-to-form-btn:hover {
+    background-color: #58797E; /* Tmavší odstín pro hover */
+    color: #FFFFFF;
+}
+
+.link-to-form-btn:active {
+    transform: scale(0.99); /* Efekt stisknutí */
+}

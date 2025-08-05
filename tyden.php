@@ -115,6 +115,11 @@ if (function_exists('curl_init')) {
                                 $final_content = implode('<br />', $cleaned_lines);
                                 ?>
                                 <p><?php echo $final_content; ?></p>
+                                <?php if ($day_name_cz === 'Sobota'): ?>
+    <div class="form-link-wrapper">
+        <a href="<?php echo site_url('/otazky/'); ?>" class="link-to-form-btn">Odeslat odpovědi</a>
+    </div>
+<?php endif; ?>
                             </div>
                         </div>
                     </div>
