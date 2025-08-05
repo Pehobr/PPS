@@ -204,3 +204,111 @@ audio {
     text-align: center;
 }
 
+
+/*
+============================================================
+ STYLY PRO MOBILNÍ ZOBRAZENÍ (ZAHRNUJE VŠECHNY ÚPRAVY)
+============================================================
+*/
+
+/* === Pro tablety a menší zařízení (šířka do 768px) === */
+@media (max-width: 768px) {
+
+    /* --- Hlavní kontejnery stránek (Týden, Kalendář, Otázky) --- */
+    .accordion-container,
+    .calendar-container,
+    .question-form-container {
+        margin-left: 10px;
+        margin-right: 10px;
+        padding-left: 15px;
+        padding-right: 15px;
+        margin-top: 15px;
+        margin-bottom: 25px;
+    }
+    
+    .hgrid {
+        padding: 0 7px;
+    }
+
+    /* --- Úprava velikosti písem pro lepší čitelnost --- */
+    .question-form-container h1,
+    .calendar-container .calendar-title {
+        font-size: 1.8em;
+    }
+
+    .accordion-button {
+        font-size: 1.15em;
+        padding: 12px 20px;
+    }
+
+    .week-button {
+        font-size: 1.1em;
+        padding: 12px 20px;
+    }
+
+    .day-heading {
+        font-size: 1em;
+    }
+
+    /* --- Audio přehrávač --- */
+    .custom-audio-player-wrapper {
+        padding: 0;
+        margin-left: auto; /* Vycentrování přehrávače */
+        margin-right: auto; /* Vycentrování přehrávače */
+    }
+
+    .custom-audio-player {
+        padding: 8px;
+    }
+
+    .play-pause-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 14px;
+    }
+
+    /* --- Formulář s otázkami --- */
+    .questions-form label {
+        font-size: 1em;
+    }
+
+    .form-submit button {
+        font-size: 1.1em;
+        padding: 12px 25px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
+
+
+/* === Pro velmi úzké obrazovky (šířka do 420px) === */
+@media (max-width: 420px) {
+
+    .accordion-container,
+    .calendar-container,
+    .question-form-container {
+        padding-left: 10px;
+        padding-right: 10px;
+        margin-left: 5px;
+        margin-right: 5px;
+    }
+
+    .question-form-container h1,
+    .calendar-container .calendar-title {
+        font-size: 1.6em;
+    }
+
+    /* Skryjeme ikonu hlasitosti, abychom ušetřili místo pro progress bar */
+    .volume-icon {
+        display: none;
+    }
+    
+    .volume-slider {
+        width: 70px;
+    }
+
+    .volume-container {
+        margin-left: 5px;
+        margin-right: 8px;
+    }
+}
