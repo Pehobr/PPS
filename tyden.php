@@ -9,11 +9,9 @@ get_header();
 // --- NASTAVENÍ ---
 $apiKey = 'AIzaSyDAmhStJ2lEeZG4qiqEpb92YrShfaDY6DE'; // <-- DOPLŇTE VÁŠ SKUTEČNÝ API KLÍČ
 $spreadsheetId = '1ZbaVVX2tJj7kWYczWopJMNZ7oU8YtXcGwp2EKgZ7XQo'; // <-- DOPLŇTE VAŠE SKUTEČNÉ ID TABULKY
-$range = 'A2:F8'; // Rozsah dat, které chcete načíst
+$range = 'A2:F8'; // Rozsah dat, které chcete načíst (včetně nového sloupce F)
 
 // --- AUTOMATICKÁ DETEKCE DOMÉNY ---
-// Tento kód automaticky zjistí doménu, na které stránka běží.
-// Nemusíte ho měnit, bude fungovat na .local i na ostré doméně.
 $current_domain = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
 
 // Funkce pro bezpečné zobrazení textu
@@ -38,7 +36,6 @@ if (function_exists('curl_init')) {
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-    // Použijeme automaticky zjištěnou doménu pro Referer
     curl_setopt($ch, CURLOPT_HTTPHEADER, ['Referer: ' . $current_domain]);
 
     $json_data = curl_exec($ch);
@@ -79,11 +76,13 @@ if (function_exists('curl_init')) {
                         if (empty(array_filter($row))) continue;
                         
                         $isReading = (isset($row[1]) && in_array(strtolower(trim($row[1])), ['čtení', 'cteni']));
-                        $dayTypeClass = $isReading ? 'day-reading' : 'day-reflection';
                         $date = $row[0] ?? '';
                         $title = $row[2] ?? 'Bez titulku';
                         $content = $row[3] ?? 'Obsah není k dispozici.';
-                        $audio_url = $row[5] ?? '';
+                        
+                        // ZÍSKÁNÍ ČÁSTÍ PRO URL ZE SLOUPCŮ E a F
+                        $audio_evangelista = $row[4] ?? '';
+                        $audio_kapitola_vers = $row[5] ?? '';
                         ?>
                         <article class="day-card <?php echo $dayTypeClass; ?>">
                             <div class="day-header">
@@ -93,10 +92,19 @@ if (function_exists('curl_init')) {
                             <div class="day-content">
                                 <p><?php echo nl2br(e_safe($content)); ?></p>
                             </div>
-                            <?php if ($isReading && !empty($audio_url)): ?>
+                            <?php // Zobrazíme audio přehrávač, pouze pokud existují OBĚ části
+                            if ($isReading && !empty($audio_evangelista) && !empty($audio_kapitola_vers)): 
+                                
+                                // Očištění a příprava částí URL
+                                $evangelista_slug = strtolower(trim($audio_evangelista));
+                                $kapitola_slug = trim($audio_kapitola_vers);
+
+                                // SESTAVENÍ FINÁLNÍ URL ADRESY
+                                $full_audio_url = 'https://audiokostel.cz/pps/' . $evangelista_slug . '-' . $kapitola_slug . '.mp3';
+                            ?>
                                 <div class="day-audio">
                                     <p class="audio-title">Poslechnout audio:</p>
-                                    <audio controls src="<?php echo esc_url($audio_url); ?>">Váš prohlížeč nepodporuje audio.</audio>
+                                    <audio controls src="<?php echo esc_url($full_audio_url); ?>">Váš prohlížeč nepodporuje audio.</audio>
                                 </div>
                             <?php endif; ?>
                         </article>
