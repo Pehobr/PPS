@@ -86,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_questions'])) 
             $form_error = 'Prosím, zadejte platnou e-mailovou adresu. Je to povinný údaj.';
         } else {
             // Sestavení těla e-mailu
-            $email_body = "Nové odpovědi pro týden: " . $week_identifier . "\n\n"; // <-- ZMĚNA: Používáme nový identifikátor
+            $email_body = "Nové odpovědi pro týden: " . $week_identifier . "\n\n";
             $email_body .= "E-mail odesílatele (pro měsíční slosování): " . $email_address . "\n";
             
             if (!empty($jmeno_prijmeni)) {
@@ -95,16 +95,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_questions'])) 
             
             $email_body .= "----------------------------------------\n\n";
 
+            // Změněná část s číslováním
             foreach ($odpovedi as $index => $odpoved) {
+                $cislo_otazky = $index + 1;
                 $otazka = sanitize_text_field($_POST['otazky'][$index]);
                 $vycistena_odpoved = sanitize_textarea_field($odpoved);
-                $email_body .= "Otázka: " . $otazka . "\n";
-                $email_body .= "Odpověď: " . $vycistena_odpoved . "\n\n";
+                $email_body .= $cislo_otazky . ". otázka: " . $otazka . "\n";
+                $email_body .= $cislo_otazky . ". odpověď: " . (!empty($vycistena_odpoved) ? $vycistena_odpoved : "-") . "\n\n";
             }
 
             // Nastavení pro e-mail
             $to = get_option('admin_email');
-            $subject = 'Nové odpovědi - ' . $week_identifier; // <-- ZMĚNA: Používáme nový identifikátor
+            $subject = 'Nové odpovědi - ' . $week_identifier;
             $headers = ['Content-Type: text/plain; charset=UTF-8'];
 
             if (wp_mail($to, $subject, $email_body, $headers)) {
@@ -131,7 +133,7 @@ get_header();
     <main id="main" class="site-main" role="main">
         <div class="question-form-container">
 
-            <h1><?php echo e_safe($week_identifier); // <-- ZMĚNA: Zobrazujeme nový identifikátor ?></h1>
+            <h1><?php echo e_safe($week_identifier); ?></h1>
             <p class="form-description">Odpovězte na otázky a zařaďte se do měsíčního slosování o cenu.</p>
 
             <?php if ($form_sent): ?>
@@ -166,7 +168,7 @@ get_header();
                         </div>
 
                         <?php foreach ($questions as $index => $question): ?>
-                            <div class.form-group">
+                            <div class="form-group">
                                 <label for="odpoved_<?php echo $index; ?>"><?php echo e_safe($question); ?></label>
                                 <input type="hidden" name="otazky[<?php echo $index; ?>]" value="<?php echo e_safe($question); ?>">
                                 <textarea id="odpoved_<?php echo $index; ?>" name="odpovedi[<?php echo $index; ?>]" rows="4"></textarea>
