@@ -193,3 +193,14 @@ audio {
     color: #b66a2a;
     text-decoration: underline;
 }
+
+/* --- Zpráva o uzavřeném odesílání --- */
+.submission-closed-message {
+    color: #777;
+    font-style: italic;
+    font-family: 'Open Sans', sans-serif;
+    padding: 10px 0;
+    margin: 0;
+    text-align: center;
+}
+

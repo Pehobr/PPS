@@ -13,27 +13,27 @@ $current_domain = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localh
 $error_message = '';
 $values = [];
 
+// --- Rozsah dat nyní zahrnuje i sloupec G pro losování ---
+$data_range = 'A2:H'; 
+
 // --- ZPRACOVÁNÍ URL PARAMETRU ---
 $target_week_monday = null;
 if (isset($_GET['week'])) {
-    // Sanitizace a validace data
     $week_param = sanitize_text_field($_GET['week']);
     try {
         $date_obj = new DateTime($week_param);
-        // Ověříme, zda je datum platné a je to pondělí
         if ($date_obj && $date_obj->format('Y-m-d') === $week_param && $date_obj->format('N') == 1) {
             $target_week_monday = $date_obj;
         }
     } catch (Exception $e) {
-        $target_week_monday = null; // Neplatný formát data
+        $target_week_monday = null;
     }
 }
 
 // --- LOGIKA NAČÍTÁNÍ DAT ---
 if ($target_week_monday) {
     // --- ZOBRAZENÍ ARCHIVNÍHO TÝDNE ---
-    // Potřebujeme načíst celou tabulku, abychom našli správný týden
-    $range = 'A2:G1000'; // Načteme větší rozsah
+    $range = $data_range . '1000'; // Načteme větší rozsah
     $apiUrl = sprintf('https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s?key=%s', $spreadsheetId, $range, $apiKey);
     
     if (function_exists('curl_init')) {
@@ -47,25 +47,18 @@ if ($target_week_monday) {
             $data = json_decode($json_data, true);
             $all_rows = $data['values'] ?? [];
             $found_week = false;
-
             foreach ($all_rows as $index => $row) {
                 if (empty($row[0])) continue;
                 try {
                     $row_date_obj = new DateTime($row[0]);
-                    // Porovnáváme datumy ve formátu Y-m-d
                     if ($row_date_obj->format('Y-m-d') === $target_week_monday->format('Y-m-d')) {
-                        // Našli jsme pondělí hledaného týdne. Vezmeme tento a 6 následujících řádků.
                         $values = array_slice($all_rows, $index, 7);
                         $found_week = true;
-                        break; // Ukončíme hledání
+                        break;
                     }
-                } catch (Exception $e) {
-                    continue; // Přeskočíme neplatné datumy
-                }
+                } catch (Exception $e) { continue; }
             }
-            if (!$found_week) {
-                $error_message = 'Požadovaný týden nebyl v archivu nalezen.';
-            }
+            if (!$found_week) $error_message = 'Požadovaný týden nebyl v archivu nalezen.';
         } else {
              $error_details = json_decode($json_data, true);
              $google_error = isset($error_details['error']['message']) ? htmlspecialchars($error_details['error']['message'], ENT_QUOTES, 'UTF-8') : 'Žádné další detaily.';
@@ -74,10 +67,9 @@ if ($target_week_monday) {
     } else {
         $error_message = "Na serveru chybí cURL rozšíření pro PHP.";
     }
-
 } else {
-    // --- PŮVODNÍ LOGIKA: ZOBRAZENÍ AKTUÁLNÍHO TÝDNE ---
-    $range = 'A2:G8'; // Načteme pouze aktuální týden
+    // --- ZOBRAZENÍ AKTUÁLNÍHO TÝDNE ---
+    $range = $data_range . '8';
     $apiUrl = sprintf('https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s?key=%s', $spreadsheetId, $range, $apiKey);
     
     if (function_exists('curl_init')) {
@@ -99,20 +91,10 @@ if ($target_week_monday) {
     }
 }
 
-
-// --- POMOCNÉ FUNKCE (zůstávají stejné) ---
-function e_safe($string) {
-    return htmlspecialchars($string, ENT_QUOTES, 'UTF-8');
-}
-function get_czech_day_name($date_string) {
-    if (empty($date_string)) return '';
-    $days_map = ['Monday'=>'Pondělí', 'Tuesday'=>'Úterý', 'Wednesday'=>'Středa', 'Thursday'=>'Čtvrtek', 'Friday'=>'Pátek', 'Saturday'=>'Sobota', 'Sunday'=>'Neděle'];
-    try { $date_obj = new DateTime($date_string); return $days_map[$date_obj->format('l')] ?? ''; } catch (Exception $e) { return ''; }
-}
-function format_czech_date($date_string) {
-    if (empty($date_string)) return '';
-    try { $date_obj = new DateTime($date_string); return $date_obj->format('j.n.Y'); } catch (Exception $e) { return $date_string; }
-}
+// --- POMOCNÉ FUNKCE ---
+function e_safe($string) { return htmlspecialchars($string, ENT_QUOTES, 'UTF-8'); }
+function get_czech_day_name($date_string) { if (empty($date_string)) return ''; $days_map = ['Monday'=>'Pondělí', 'Tuesday'=>'Úterý', 'Wednesday'=>'Středa', 'Thursday'=>'Čtvrtek', 'Friday'=>'Pátek', 'Saturday'=>'Sobota', 'Sunday'=>'Neděle']; try { $date_obj = new DateTime($date_string); return $days_map[$date_obj->format('l')] ?? ''; } catch (Exception $e) { return ''; } }
+function format_czech_date($date_string) { if (empty($date_string)) return ''; try { $date_obj = new DateTime($date_string); return $date_obj->format('j.n.Y'); } catch (Exception $e) { return $date_string; } }
 ?>
 
 <link rel="stylesheet" id="tyden-css" href="<?php echo get_stylesheet_directory_uri(); ?>/css/tyden.css" type="text/css" media="all" />
@@ -134,30 +116,29 @@ function format_czech_date($date_string) {
             <?php if (!empty($values)): ?>
                 <?php foreach ($values as $row): ?>
                     <?php
-                    // Zbytek kódu pro zobrazení zůstává stejný
                     if (empty(array_filter($row))) continue;
                     $date = $row[0] ?? '';
                     $day_name_cz = get_czech_day_name($date);
                     $formatted_date = format_czech_date($date);
-                    $title = $row[2] ?? 'Bez titulku';
+                    $title_from_sheet = $row[2] ?? '';
                     $content = $row[3] ?? '';
                     $audio_evangelista = $row[4] ?? '';
                     $audio_kapitola_vers = $row[5] ?? '';
                     $has_audio = !empty($audio_evangelista) && !empty($audio_kapitola_vers);
+                    
+                    $title = $title_from_sheet;
+                    if ($day_name_cz === 'Sobota' && empty(trim($title_from_sheet))) { $title = 'Otázky k zamyšlení'; } 
+                    elseif ($day_name_cz === 'Neděle' && empty(trim($title_from_sheet))) { $title = 'Nedělní zamyšlení'; }
+                    if (empty(trim($title))) { $title = 'Bez titulku'; }
                     ?>
                     <div class="accordion-item">
                         <h3 class="day-heading"><?php echo e_safe($day_name_cz . ($formatted_date ? ' - ' . $formatted_date : '')); ?></h3>
                         <?php
                         $button_class = 'accordion-button';
-                        if ($day_name_cz === 'Sobota') {
-                            $button_class .= ' saturday-btn';
-                        } elseif ($day_name_cz === 'Neděle') {
-                            $button_class .= ' sunday-btn';
-                        }
+                        if ($day_name_cz === 'Sobota') $button_class .= ' saturday-btn';
+                        elseif ($day_name_cz === 'Neděle') $button_class .= ' sunday-btn';
                         ?>
-                        <button type="button" class="<?php echo $button_class; ?>">
-                            <?php echo e_safe($title); ?>
-                        </button>
+                        <button type="button" class="<?php echo $button_class; ?>"><?php echo e_safe($title); ?></button>
                         <div class="accordion-content">
                             <div class="content-inner">
                                 <?php if ($has_audio): 
@@ -176,22 +157,29 @@ function format_czech_date($date_string) {
                                 <?php
                                 $lines = preg_split('/\r\n|\r|\n/', $content);
                                 $cleaned_lines = [];
-                                foreach ($lines as $line) {
-                                    if (trim($line) !== '') {
-                                        $cleaned_lines[] = e_safe(trim($line));
-                                    }
-                                }
+                                foreach ($lines as $line) { if (trim($line) !== '') $cleaned_lines[] = e_safe(trim($line)); }
                                 $final_content = implode('<br />', $cleaned_lines);
                                 ?>
                                 <p><?php echo $final_content; ?></p>
+                                
                                 <?php if ($day_name_cz === 'Sobota'): ?>
                                     <div class="form-link-wrapper">
                                         <?php
-                                        // Odkaz na otázky nyní také obsahuje identifikátor týdne.
-                                        $otazky_page_url = site_url('/otazky/');
-                                        $otazky_link = add_query_arg('week', $target_week_monday ? $target_week_monday->format('Y-m-d') : 'current', $otazky_page_url);
+                                        // --- OPRAVA ZDE: Kontrola sloupce G (index 6) pro losování ---
+                                        $losovani_active = (isset($row[6]) && strtolower(trim($row[6])) === 'ano');
+
+                                        if ($losovani_active) {
+                                            $otazky_page_url = site_url('/otazky/');
+                                            $otazky_link = add_query_arg('week', $target_week_monday ? $target_week_monday->format('Y-m-d') : 'current', $otazky_page_url);
+                                            ?>
+                                            <a href="<?php echo esc_url($otazky_link); ?>" class="link-to-form-btn">Odeslat odpovědi</a>
+                                            <?php
+                                        } else {
+                                            ?>
+                                            <p class="submission-closed-message">Odpovědi pro tento týden jsou již uzavřeny.</p>
+                                            <?php
+                                        }
                                         ?>
-                                        <a href="<?php echo esc_url($otazky_link); ?>" class="link-to-form-btn">Odeslat odpovědi</a>
                                     </div>
                                 <?php endif; ?>
                             </div>
