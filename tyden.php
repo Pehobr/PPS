@@ -7,8 +7,8 @@
 get_header();
 
 // --- NASTAVENÍ ---
-$apiKey = 'AIzaSyDAmhStJ2lEeZG4qiqEpb92YrShfaDY6DE';
-$spreadsheetId = '1ZbaVVX2tJj7kWYczWopJMNZ7oU8YtXcGwp2EKgZ7XQo';
+$apiKey = 'AIzaSyDAmhStJ2lEeZG4qiqEpb92YrShfaDY6DE'; // Váš API klíč
+$spreadsheetId = '1ZbaVVX2tJj7kWYczWopJMNZ7oU8YtXcGwp2EKgZ7XQo'; // Vaše ID tabulky
 $range = 'A2:G8';
 $current_domain = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
 
@@ -20,33 +20,14 @@ function e_safe($string) {
 // Mapa pro převod anglických názvů dnů na české
 function get_czech_day_name($date_string) {
     if (empty($date_string)) return '';
-    $days_map = [
-        'Monday'    => 'Pondělí',
-        'Tuesday'   => 'Úterý',
-        'Wednesday' => 'Středa',
-        'Thursday'  => 'Čtvrtek',
-        'Friday'    => 'Pátek',
-        'Saturday'  => 'Sobota',
-        'Sunday'    => 'Neděle'
-    ];
-    try {
-        $date_obj = new DateTime($date_string);
-        $day_english = $date_obj->format('l');
-        return $days_map[$day_english] ?? '';
-    } catch (Exception $e) {
-        return '';
-    }
+    $days_map = ['Monday'=>'Pondělí', 'Tuesday'=>'Úterý', 'Wednesday'=>'Středa', 'Thursday'=>'Čtvrtek', 'Friday'=>'Pátek', 'Saturday'=>'Sobota', 'Sunday'=>'Neděle'];
+    try { $date_obj = new DateTime($date_string); return $days_map[$date_obj->format('l')] ?? ''; } catch (Exception $e) { return ''; }
 }
 
 // Funkce pro formátování data do českého formátu
 function format_czech_date($date_string) {
     if (empty($date_string)) return '';
-    try {
-        $date_obj = new DateTime($date_string);
-        return $date_obj->format('j.n.Y');
-    } catch (Exception $e) {
-        return $date_string;
-    }
+    try { $date_obj = new DateTime($date_string); return $date_obj->format('j.n.Y'); } catch (Exception $e) { return $date_string; }
 }
 
 // Kód pro načtení dat z Google Sheets
@@ -55,11 +36,7 @@ $values = [];
 $error_message = '';
 if (function_exists('curl_init')) {
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $apiUrl);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Referer: ' . $current_domain]);
+    curl_setopt_array($ch, [CURLOPT_URL => $apiUrl, CURLOPT_RETURNTRANSFER => 1, CURLOPT_SSL_VERIFYPEER => false, CURLOPT_TIMEOUT => 15, CURLOPT_HTTPHEADER => ['Referer: ' . $current_domain]]);
     $json_data = curl_exec($ch);
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
@@ -69,7 +46,7 @@ if (function_exists('curl_init')) {
     } else {
         $error_details = json_decode($json_data, true);
         $google_error = isset($error_details['error']['message']) ? e_safe($error_details['error']['message']) : 'Žádné další detaily.';
-        $error_message = "Chyba při načítání dat z Google API (HTTP kód: ".e_safe($http_code)."). Zkontrolujte nastavení. Detail: ".$google_error;
+        $error_message = "Chyba při načítání dat z Google API (HTTP kód: ".e_safe($http_code)."). Detail: ".$google_error;
     }
 } else {
     $error_message = "Na serveru chybí cURL rozšíření pro PHP.";
@@ -93,7 +70,7 @@ if (function_exists('curl_init')) {
                     $day_name_cz = get_czech_day_name($date);
                     $formatted_date = format_czech_date($date);
                     $title = $row[2] ?? 'Bez titulku';
-                    $content = $row[3] ?? 'Obsah není k dispozici.';
+                    $content = $row[3] ?? '';
                     $audio_evangelista = $row[4] ?? '';
                     $audio_kapitola_vers = $row[5] ?? '';
                     $has_audio = !empty($audio_evangelista) && !empty($audio_kapitola_vers);
@@ -103,32 +80,31 @@ if (function_exists('curl_init')) {
                         <button type="button" class="accordion-button"><?php echo e_safe($title); ?></button>
                         <div class="accordion-content">
                             <div class="content-inner">
-                                
                                 <?php if ($has_audio): 
                                     $full_audio_url = 'https://audiokostel.cz/pps/' . strtolower(trim($audio_evangelista)) . '-' . trim($audio_kapitola_vers) . '.mp3';
                                 ?>
                                     <div class="custom-audio-player-wrapper">
                                         <div class="custom-audio-player">
-                                            <button class="play-pause-btn paused">
-                                                <i class="fas fa-play"></i>
-                                                <i class="fas fa-pause"></i>
-                                            </button>
-                                            <div class="progress-bar-container">
-                                                <div class="progress-bar-fill"></div>
-                                            </div>
-                                            <div class="volume-container">
-                                                <i class="fas fa-volume-up volume-icon"></i>
-                                                <input type="range" class="volume-slider" min="0" max="1" step="0.05" value="1">
-                                            </div>
+                                            <button class="play-pause-btn paused"><i class="fas fa-play"></i><i class="fas fa-pause"></i></button>
+                                            <div class="progress-bar-container"><div class="progress-bar-fill"></div></div>
+                                            <div class="volume-container"><i class="fas fa-volume-up volume-icon"></i><input type="range" class="volume-slider" min="0" max="1" step="0.05" value="1"></div>
                                         </div>
                                         <audio src="<?php echo esc_url($full_audio_url); ?>" preload="metadata" style="display: none;"></audio>
                                     </div>
                                 <?php endif; ?>
 
                                 <?php
-                                $cleaned_content = preg_replace('/(\r\n|\r|\n){2,}/', "\n", $content);
+                                // ZMĚNA ZDE: Spolehlivé odstranění prázdných řádků
+                                $lines = preg_split('/\r\n|\r|\n/', $content);
+                                $cleaned_lines = [];
+                                foreach ($lines as $line) {
+                                    if (trim($line) !== '') {
+                                        $cleaned_lines[] = e_safe(trim($line));
+                                    }
+                                }
+                                $final_content = implode('<br />', $cleaned_lines);
                                 ?>
-                                <p><?php echo nl2br(e_safe($cleaned_content)); ?></p>
+                                <p><?php echo $final_content; ?></p>
                             </div>
                         </div>
                     </div>
