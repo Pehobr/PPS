@@ -12,9 +12,7 @@ $spreadsheetId = defined('GOOGLE_SHEETS_SPREADSHEET_ID') ? GOOGLE_SHEETS_SPREADS
 $current_domain = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
 $error_message = '';
 $values = [];
-
-// --- Rozsah dat nyní zahrnuje i sloupec G pro losování ---
-$data_range = 'A2:H'; 
+$data_range = 'A2:H1000'; // Vždy načítáme větší rozsah pro vyhledávání
 
 // --- ZPRACOVÁNÍ URL PARAMETRU ---
 $target_week_monday = null;
@@ -25,28 +23,25 @@ if (isset($_GET['week'])) {
         if ($date_obj && $date_obj->format('Y-m-d') === $week_param && $date_obj->format('N') == 1) {
             $target_week_monday = $date_obj;
         }
-    } catch (Exception $e) {
-        $target_week_monday = null;
-    }
+    } catch (Exception $e) { $target_week_monday = null; }
 }
 
 // --- LOGIKA NAČÍTÁNÍ DAT ---
-if ($target_week_monday) {
-    // --- ZOBRAZENÍ ARCHIVNÍHO TÝDNE ---
-    $range = $data_range . '1000'; // Načteme větší rozsah
-    $apiUrl = sprintf('https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s?key=%s', $spreadsheetId, $range, $apiKey);
-    
-    if (function_exists('curl_init')) {
-        $ch = curl_init();
-        curl_setopt_array($ch, [CURLOPT_URL => $apiUrl, CURLOPT_RETURNTRANSFER => 1, CURLOPT_SSL_VERIFYPEER => false, CURLOPT_TIMEOUT => 15, CURLOPT_HTTPHEADER => ['Referer: ' . $current_domain]]);
-        $json_data = curl_exec($ch);
-        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+if (function_exists('curl_init')) {
+    $apiUrl = sprintf('https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s?key=%s', $spreadsheetId, $data_range, $apiKey);
+    $ch = curl_init();
+    curl_setopt_array($ch, [CURLOPT_URL => $apiUrl, CURLOPT_RETURNTRANSFER => 1, CURLOPT_SSL_VERIFYPEER => false, CURLOPT_TIMEOUT => 15, CURLOPT_HTTPHEADER => ['Referer: ' . $current_domain]]);
+    $json_data = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
 
-        if ($http_code == 200 && $json_data) {
-            $data = json_decode($json_data, true);
-            $all_rows = $data['values'] ?? [];
-            $found_week = false;
+    if ($http_code == 200 && $json_data) {
+        $data = json_decode($json_data, true);
+        $all_rows = $data['values'] ?? [];
+        $found_week = false;
+
+        if ($target_week_monday) {
+            // Hledání konkrétního ARCHIVNÍHO týdne
             foreach ($all_rows as $index => $row) {
                 if (empty($row[0])) continue;
                 try {
@@ -60,35 +55,39 @@ if ($target_week_monday) {
             }
             if (!$found_week) $error_message = 'Požadovaný týden nebyl v archivu nalezen.';
         } else {
-             $error_details = json_decode($json_data, true);
-             $google_error = isset($error_details['error']['message']) ? htmlspecialchars($error_details['error']['message'], ENT_QUOTES, 'UTF-8') : 'Žádné další detaily.';
-             $error_message = "Chyba při načítání dat z Google API (HTTP kód: ".htmlspecialchars($http_code, ENT_QUOTES, 'UTF-8')."). Detail: ".$google_error;
+            // --- OPRAVA ZDE: Hledání AKTUÁLNÍHO týdne podle dnešního data ---
+            $today = new DateTime('today');
+            $current_week_number = $today->format('o-W'); // Získáme ISO týden a rok
+
+            foreach ($all_rows as $index => $row) {
+                if (empty($row[0])) continue;
+                try {
+                    $row_date_obj = new DateTime($row[0]);
+                    if ($row_date_obj->format('o-W') === $current_week_number) {
+                        // Našli jsme den v aktuálním týdnu. Teď najdeme pondělí tohoto týdne.
+                        $monday_of_this_week = (clone $row_date_obj)->modify('monday this week');
+                        // Najdeme index pondělí a vezmeme 7 následujících řádků
+                        foreach($all_rows as $sub_index => $sub_row) {
+                            if(empty($sub_row[0])) continue;
+                            $sub_row_date = new DateTime($sub_row[0]);
+                            if($sub_row_date->format('Y-m-d') === $monday_of_this_week->format('Y-m-d')) {
+                                $values = array_slice($all_rows, $sub_index, 7);
+                                $found_week = true;
+                                break 2; // Ukončí oba cykly
+                            }
+                        }
+                    }
+                } catch (Exception $e) { continue; }
+            }
+             if (!$found_week) $error_message = 'Data pro aktuální týden nebyla v tabulce nalezena.';
         }
     } else {
-        $error_message = "Na serveru chybí cURL rozšíření pro PHP.";
+         $error_details = json_decode($json_data, true);
+         $google_error = isset($error_details['error']['message']) ? htmlspecialchars($error_details['error']['message'], ENT_QUOTES, 'UTF-8') : 'Žádné další detaily.';
+         $error_message = "Chyba při načítání dat z Google API (HTTP kód: ".htmlspecialchars($http_code, ENT_QUOTES, 'UTF-8')."). Detail: ".$google_error;
     }
 } else {
-    // --- ZOBRAZENÍ AKTUÁLNÍHO TÝDNE ---
-    $range = $data_range . '8';
-    $apiUrl = sprintf('https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s?key=%s', $spreadsheetId, $range, $apiKey);
-    
-    if (function_exists('curl_init')) {
-        $ch = curl_init();
-        curl_setopt_array($ch, [CURLOPT_URL => $apiUrl, CURLOPT_RETURNTRANSFER => 1, CURLOPT_SSL_VERIFYPEER => false, CURLOPT_TIMEOUT => 15, CURLOPT_HTTPHEADER => ['Referer: ' . $current_domain]]);
-        $json_data = curl_exec($ch);
-        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        if ($http_code == 200 && $json_data) {
-            $data = json_decode($json_data, true);
-            $values = $data['values'] ?? [];
-        } else {
-            $error_details = json_decode($json_data, true);
-            $google_error = isset($error_details['error']['message']) ? htmlspecialchars($error_details['error']['message'], ENT_QUOTES, 'UTF-8') : 'Žádné další detaily.';
-            $error_message = "Chyba při načítání dat z Google API (HTTP kód: ".htmlspecialchars($http_code, ENT_QUOTES, 'UTF-8')."). Detail: ".$google_error;
-        }
-    } else {
-        $error_message = "Na serveru chybí cURL rozšíření pro PHP.";
-    }
+    $error_message = "Na serveru chybí cURL rozšíření pro PHP.";
 }
 
 // --- POMOCNÉ FUNKCE ---
@@ -165,9 +164,7 @@ function format_czech_date($date_string) { if (empty($date_string)) return ''; t
                                 <?php if ($day_name_cz === 'Sobota'): ?>
                                     <div class="form-link-wrapper">
                                         <?php
-                                        // --- OPRAVA ZDE: Kontrola sloupce G (index 6) pro losování ---
                                         $losovani_active = (isset($row[6]) && strtolower(trim($row[6])) === 'ano');
-
                                         if ($losovani_active) {
                                             $otazky_page_url = site_url('/otazky/');
                                             $otazky_link = add_query_arg('week', $target_week_monday ? $target_week_monday->format('Y-m-d') : 'current', $otazky_page_url);
