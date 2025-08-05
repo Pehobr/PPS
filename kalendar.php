@@ -127,5 +127,4 @@ if (function_exists('curl_init')) {
 </div>
 
 <?php
-get_footer();
 ?>

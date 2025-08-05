@@ -193,5 +193,5 @@ function format_czech_date($date_string) { if (empty($date_string)) return ''; t
 <script src="<?php echo get_stylesheet_directory_uri(); ?>/js/tyden.js"></script>
 
 <?php
-get_footer();
+
 ?>
