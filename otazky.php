@@ -4,17 +4,8 @@
  * Description: Šablona pro zobrazení formuláře s otázkami ze soboty a odeslání odpovědí e-mailem.
  */
 
-// --- KROK 1: NAČTENÍ DAT A VYTVOŘENÍ ROZSAHU DATUMŮ ---
-$apiKey = defined('GOOGLE_SHEETS_API_KEY') ? GOOGLE_SHEETS_API_KEY : '';
-$spreadsheetId = defined('GOOGLE_SHEETS_SPREADSHEET_ID') ? GOOGLE_SHEETS_SPREADSHEET_ID : '';
-$range = 'A2:G8';
-$current_domain = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
-$saturday_data = null;
-$error_message = '';
-$week_identifier = 'Sobotní otázky'; // Výchozí titulek
-
-// Pomocné funkce
-function e_safe($string) {
+// --- Pomocné funkce ---
+function e_safe_q($string) {
     return htmlspecialchars($string, ENT_QUOTES, 'UTF-8');
 }
 function get_czech_day_name_q($date_string) {
@@ -23,8 +14,33 @@ function get_czech_day_name_q($date_string) {
     try { $date_obj = new DateTime($date_string); return $days_map[$date_obj->format('l')] ?? ''; } catch (Exception $e) { return ''; }
 }
 
+// --- KROK 1: NAČTENÍ DAT A ZJIŠTĚNÍ CÍLOVÉHO TÝDNE ---
+$apiKey = defined('GOOGLE_SHEETS_API_KEY') ? GOOGLE_SHEETS_API_KEY : '';
+$spreadsheetId = defined('GOOGLE_SHEETS_SPREADSHEET_ID') ? GOOGLE_SHEETS_SPREADSHEET_ID : '';
+$current_domain = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
+$saturday_data = null;
+$error_message = '';
+$week_identifier = 'Sobotní otázky'; // Výchozí titulek
+$target_week_monday = null;
+
+// Zpracování URL parametru 'week'
+if (isset($_GET['week']) && $_GET['week'] !== 'current') {
+    $week_param = sanitize_text_field($_GET['week']);
+    try {
+        $date_obj = new DateTime($week_param);
+        if ($date_obj && $date_obj->format('Y-m-d') === $week_param && $date_obj->format('N') == 1) {
+            $target_week_monday = $date_obj;
+        }
+    } catch (Exception $e) {
+        $target_week_monday = null;
+    }
+}
+
+// Načítání dat z Google Sheets
+$range_to_fetch = $target_week_monday ? 'A2:G1000' : 'A2:G8'; // Načteme vše pro archiv, nebo jen aktuální
+$apiUrl = sprintf('https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s?key=%s', $spreadsheetId, $range_to_fetch, $apiKey);
+
 if (function_exists('curl_init')) {
-    $apiUrl = sprintf('https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s?key=%s', $spreadsheetId, $range, $apiKey);
     $ch = curl_init();
     curl_setopt_array($ch, [CURLOPT_URL => $apiUrl, CURLOPT_RETURNTRANSFER => 1, CURLOPT_SSL_VERIFYPEER => false, CURLOPT_TIMEOUT => 15, CURLOPT_HTTPHEADER => ['Referer: ' . $current_domain]]);
     $json_data = curl_exec($ch);
@@ -33,44 +49,57 @@ if (function_exists('curl_init')) {
 
     if ($http_code == 200 && $json_data) {
         $data = json_decode($json_data, true);
-        $values = $data['values'] ?? [];
-        foreach ($values as $row) {
-            $date_str = $row[0] ?? '';
-            if (get_czech_day_name_q($date_str) === 'Sobota') {
-                $saturday_data = $row;
-                // <-- ZMĚNA: Vypočítáme datumy pro daný týden
-                try {
-                    $saturday_date_obj = new DateTime($date_str);
-                    // Klonujeme objekt, abychom neměnili původní datum
-                    $monday_obj = clone $saturday_date_obj;
-                    $sunday_obj = clone $saturday_date_obj;
-                    
-                    // Najdeme pondělí a neděli daného týdne
-                    $monday_obj->modify('last monday');
-                    $sunday_obj->modify('next sunday');
+        $all_rows = $data['values'] ?? [];
 
-                    // Vytvoříme identifikátor týdne
-                    $week_identifier = 'Otázky pro týden: ' . $monday_obj->format('j. n. Y') . ' - ' . $sunday_obj->format('j. n. Y');
-                } catch (Exception $e) {
-                    // Pokud by datum bylo neplatné, použije se výchozí titulek
+        if ($target_week_monday) {
+            // Hledáme sobotu v konkrétním týdnu
+            $target_saturday_date = (clone $target_week_monday)->modify('saturday this week');
+            $found = false;
+            foreach ($all_rows as $row) {
+                if (empty($row[0])) continue;
+                try {
+                    $row_date_obj = new DateTime($row[0]);
+                    if ($row_date_obj->format('Y-m-d') === $target_saturday_date->format('Y-m-d')) {
+                        $saturday_data = $row;
+                        $found = true;
+                        break;
+                    }
+                } catch (Exception $e) { continue; }
+            }
+            if (!$found) $error_message = 'Data pro sobotu v požadovaném týdnu nebyla nalezena.';
+        } else {
+            // Původní chování - najdeme první sobotu v načtených datech (aktuální týden)
+            foreach ($all_rows as $row) {
+                if (get_czech_day_name_q($row[0] ?? '') === 'Sobota') {
+                    $saturday_data = $row;
+                    break;
                 }
-                break;
             }
         }
-        if (!$saturday_data) {
-            $error_message = 'Data pro sobotu nebyla nalezena.';
+
+        // Nastavení identifikátoru týdne
+        if ($saturday_data) {
+            try {
+                $saturday_date_obj = new DateTime($saturday_data[0]);
+                $monday_obj = (clone $saturday_date_obj)->modify('last monday');
+                $sunday_obj = (clone $saturday_date_obj)->modify('next sunday');
+                $week_identifier = 'Otázky pro týden: ' . $monday_obj->format('j. n. Y') . ' - ' . $sunday_obj->format('j. n. Y');
+            } catch (Exception $e) { /* Ponechá se výchozí */ }
+        } else {
+            if (empty($error_message)) $error_message = 'Data pro sobotu nebyla nalezena.';
         }
+
     } else {
         $error_details = json_decode($json_data, true);
-        $google_error = isset($error_details['error']['message']) ? e_safe($error_details['error']['message']) : 'Žádné další detaily.';
-        $error_message = "Chyba při načítání dat z Google API (HTTP kód: ".e_safe($http_code)."). Detail: ".$google_error;
+        $google_error = isset($error_details['error']['message']) ? e_safe_q($error_details['error']['message']) : 'Žádné další detaily.';
+        $error_message = "Chyba při načítání dat z Google API (HTTP kód: ".e_safe_q($http_code)."). Detail: ".$google_error;
     }
 } else {
     $error_message = "Na serveru chybí cURL rozšíření pro PHP.";
 }
 
 
-// --- KROK 2: ZPRACOVÁNÍ FORMULÁŘE ---
+// --- KROK 2: ZPRACOVÁNÍ FORMULÁŘE (zůstává stejné) ---
 $form_sent = false;
 $form_error = '';
 
@@ -86,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_questions'])) 
             $form_error = 'Prosím, zadejte platnou e-mailovou adresu. Je to povinný údaj.';
         } else {
             // Sestavení těla e-mailu
-            $email_body = "Nové odpovědi pro týden: " . $week_identifier . "\n\n";
+            $email_body = "Nové odpovědi pro týden: " . sanitize_text_field($_POST['week_identifier_hidden']) . "\n\n";
             $email_body .= "E-mail odesílatele (pro měsíční slosování): " . $email_address . "\n";
             
             if (!empty($jmeno_prijmeni)) {
@@ -95,7 +124,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_questions'])) 
             
             $email_body .= "----------------------------------------\n\n";
 
-            // Změněná část s číslováním
             foreach ($odpovedi as $index => $odpoved) {
                 $cislo_otazky = $index + 1;
                 $otazka = sanitize_text_field($_POST['otazky'][$index]);
@@ -104,9 +132,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_questions'])) 
                 $email_body .= $cislo_otazky . ". odpověď: " . (!empty($vycistena_odpoved) ? $vycistena_odpoved : "-") . "\n\n";
             }
 
-            // Nastavení pro e-mail
             $to = get_option('admin_email');
-            $subject = 'Nové odpovědi - ' . $week_identifier;
+            $subject = 'Nové odpovědi - ' . sanitize_text_field($_POST['week_identifier_hidden']);
             $headers = ['Content-Type: text/plain; charset=UTF-8'];
 
             if (wp_mail($to, $subject, $email_body, $headers)) {
@@ -133,13 +160,18 @@ get_header();
     <main id="main" class="site-main" role="main">
         <div class="question-form-container">
 
-            <h1><?php echo e_safe($week_identifier); ?></h1>
+            <h1><?php echo e_safe_q($week_identifier); ?></h1>
             <p class="form-description">Odpovězte na otázky a zařaďte se do měsíčního slosování o cenu.</p>
 
             <?php if ($form_sent): ?>
                 <div class="form-success-message">
                     Děkujeme za odeslání odpovědí! Byli jste zařazeni do měsíčního slosování.
                 </div>
+                <?php if ($target_week_monday): ?>
+                    <div style="text-align:center; margin-top: 20px;">
+                        <a href="<?php echo esc_url(add_query_arg('week', $target_week_monday->format('Y-m-d'), site_url('/tyden/'))); ?>" style="font-size: 1.1em;">&larr; Zpět na přehled týdne</a>
+                    </div>
+                <?php endif; ?>
             <?php elseif (!empty($form_error)): ?>
                 <div class="form-error-message">
                     <?php echo $form_error; ?>
@@ -156,6 +188,7 @@ get_header();
                 <?php if (!empty($questions)): ?>
                     <form action="" method="post" class="questions-form">
                         <?php wp_nonce_field('submit_questions_action', 'question_form_nonce'); ?>
+                        <input type="hidden" name="week_identifier_hidden" value="<?php echo e_safe_q($week_identifier); ?>">
 
                         <div class="form-group">
                             <label for="jmeno_prijmeni">Jméno a příjmení (nepovinné)</label>
@@ -169,8 +202,8 @@ get_header();
 
                         <?php foreach ($questions as $index => $question): ?>
                             <div class="form-group">
-                                <label for="odpoved_<?php echo $index; ?>"><?php echo e_safe($question); ?></label>
-                                <input type="hidden" name="otazky[<?php echo $index; ?>]" value="<?php echo e_safe($question); ?>">
+                                <label for="odpoved_<?php echo $index; ?>"><?php echo e_safe_q($question); ?></label>
+                                <input type="hidden" name="otazky[<?php echo $index; ?>]" value="<?php echo e_safe_q($question); ?>">
                                 <textarea id="odpoved_<?php echo $index; ?>" name="odpovedi[<?php echo $index; ?>]" rows="4"></textarea>
                             </div>
                         <?php endforeach; ?>

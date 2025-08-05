@@ -165,3 +165,31 @@ audio {
 .link-to-form-btn:active {
     transform: scale(0.99); /* Efekt stisknutí */
 }
+
+/* --- Dodatek pro archivní zobrazení --- */
+.archive-header {
+    text-align: center;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #EAE0D5;
+}
+
+.archive-header h2 {
+    font-family: 'Lora', serif;
+    font-weight: 700;
+    color: #555;
+    margin: 0 0 15px 0;
+}
+
+.archive-header .back-to-archive-link {
+    font-family: 'Open Sans', sans-serif;
+    color: #D88C4B;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.archive-header .back-to-archive-link:hover {
+    color: #b66a2a;
+    text-decoration: underline;
+}
