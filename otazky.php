@@ -5,8 +5,8 @@
  */
 
 // --- KROK 1: NAČTENÍ DAT A VYTVOŘENÍ ROZSAHU DATUMŮ ---
-$apiKey = 'AIzaSyDAmhStJ2lEeZG4qiqEpb92YrShfaDY6DE'; // Váš API klíč
-$spreadsheetId = '1ZbaVVX2tJj7kWYczWopJMNZ7oU8YtXcGwp2EKgZ7XQo'; // Vaše ID tabulky
+$apiKey = defined('GOOGLE_SHEETS_API_KEY') ? GOOGLE_SHEETS_API_KEY : '';
+$spreadsheetId = defined('GOOGLE_SHEETS_SPREADSHEET_ID') ? GOOGLE_SHEETS_SPREADSHEET_ID : '';
 $range = 'A2:G8';
 $current_domain = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
 $saturday_data = null;
