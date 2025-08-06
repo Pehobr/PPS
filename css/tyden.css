@@ -215,9 +215,9 @@ audio {
 @media (max-width: 768px) {
 
     /* === Vlastní velikost hlavního nadpisu v mobilu === */
-#site-title {
-    font-size: 20px !important; /* Tuto hodnotu si můžete libovolně změnit */
-}
+    #site-title {
+        font-size: 20px !important; /* Tuto hodnotu si můžete libovolně změnit */
+    }
 
     /* --- Hlavní kontejnery stránek (Týden, Kalendář, Otázky) --- */
     .accordion-container,
@@ -282,6 +282,12 @@ audio {
         padding: 12px 25px;
         width: 100%;
         box-sizing: border-box;
+    }
+
+    /* === NOVÁ OPRAVA: Zalomení tlačítek Výklad/Inspirace/Slovník === */
+    .extra-buttons-container {
+        flex-wrap: wrap; /* Umožní tlačítkům zalamovat se na více řádků */
+        gap: 10px; /* Zmenšíme mezeru mezi tlačítky */
     }
 }
 
@@ -394,6 +400,9 @@ audio {
 
 .extra-content-inner {
     padding: 15px 20px;
+}
+.extra-content-inner p {
+    margin-bottom: 0.7em; /* Vytvoří mezeru pod každým odstavcem */
 }
 .extra-content-inner p:last-child {
     margin-bottom: 0;

@@ -182,19 +182,27 @@ function format_czech_date($date_string) { if (empty($date_string)) return ''; t
                                                 </div>
                                             </div>
                                         <?php endif; ?>
+
                                         <?php if (!empty(trim($inspirace_content))): ?>
                                             <div id="inspirace-<?php echo $index; ?>" class="extra-content">
                                                  <div class="extra-content-inner">
-                                                    <?php echo wp_kses_post($inspirace_content); ?>
+                                                    <?php
+                                                    $inspirace_lines = preg_split('/\r\n|\r|\n/', $inspirace_content);
+                                                    $inspirace_non_empty_lines = array_filter($inspirace_lines, 'trim');
+                                                    $inspirace_final_html = '';
+                                                    foreach ($inspirace_non_empty_lines as $line) {
+                                                        $inspirace_final_html .= '<p>' . e_safe(trim($line)) . '</p>';
+                                                    }
+                                                    echo wp_kses_post($inspirace_final_html);
+                                                    ?>
                                                  </div>
                                             </div>
                                         <?php endif; ?>
+
                                         <?php if (!empty(trim($slovnik_content))): ?>
                                             <div id="slovnik-<?php echo $index; ?>" class="extra-content">
                                                  <div class="extra-content-inner">
                                                     <?php 
-                                                    // ---- ZDE JE KLÍČOVÁ ZMĚNA ----
-                                                    // Převede konce řádků z buňky na <br /> a pak bezpečně vypíše
                                                     $slovnik_formatted = nl2br(htmlspecialchars($slovnik_content));
                                                     echo wp_kses_post($slovnik_formatted); 
                                                     ?>
