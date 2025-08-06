@@ -12,7 +12,6 @@ $spreadsheetId = defined('GOOGLE_SHEETS_SPREADSHEET_ID') ? GOOGLE_SHEETS_SPREADS
 $current_domain = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
 $error_message = '';
 $values = [];
-// Rozšířený rozsah o další sloupce
 $data_range = 'A2:L1000'; 
 
 // --- ZPRACOVÁNÍ URL PARAMETRU ---
@@ -121,10 +120,9 @@ function format_czech_date($date_string) { if (empty($date_string)) return ''; t
                     $audio_kapitola_vers = $row[5] ?? '';
                     $has_audio = !empty($audio_evangelista) && !empty($audio_kapitola_vers);
 
-                    // ---- ZDE NAČÍTÁME DATA PRO VŠECHNA 3 TLAČÍTKA ----
-                    $jazyk_content = $row[7] ?? '';      // Sloupec H = Výklad
-                    $inspirace_content = $row[8] ?? ''; // Sloupec I = Inspirace
-                    $slovnik_content = $row[9] ?? '';   // Sloupec J = Slovník
+                    $jazyk_content = $row[7] ?? '';
+                    $inspirace_content = $row[8] ?? '';
+                    $slovnik_content = $row[9] ?? '';
                     $has_extra_content = !empty(trim($jazyk_content)) || !empty(trim($inspirace_content)) || !empty(trim($slovnik_content));
                     
                     $title = $title_from_sheet;
@@ -172,7 +170,7 @@ function format_czech_date($date_string) { if (empty($date_string)) return ''; t
                                             <?php if (!empty(trim($inspirace_content))): ?>
                                                 <button type="button" class="extra-button" data-target="inspirace-<?php echo $index; ?>">Inspirace</button>
                                             <?php endif; ?>
-                                            <?php if (!empty(trim($slovnik_content))): /* --- NOVÉ TLAČÍTKO --- */ ?>
+                                            <?php if (!empty(trim($slovnik_content))): ?>
                                                 <button type="button" class="extra-button" data-target="slovnik-<?php echo $index; ?>">Slovník</button>
                                             <?php endif; ?>
                                         </div>
@@ -191,10 +189,15 @@ function format_czech_date($date_string) { if (empty($date_string)) return ''; t
                                                  </div>
                                             </div>
                                         <?php endif; ?>
-                                        <?php if (!empty(trim($slovnik_content))): /* --- NOVÝ OBSAH --- */ ?>
+                                        <?php if (!empty(trim($slovnik_content))): ?>
                                             <div id="slovnik-<?php echo $index; ?>" class="extra-content">
                                                  <div class="extra-content-inner">
-                                                    <?php echo wp_kses_post($slovnik_content); ?>
+                                                    <?php 
+                                                    // ---- ZDE JE KLÍČOVÁ ZMĚNA ----
+                                                    // Převede konce řádků z buňky na <br /> a pak bezpečně vypíše
+                                                    $slovnik_formatted = nl2br(htmlspecialchars($slovnik_content));
+                                                    echo wp_kses_post($slovnik_formatted); 
+                                                    ?>
                                                  </div>
                                             </div>
                                         <?php endif; ?>
