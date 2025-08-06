@@ -171,7 +171,7 @@ function format_czech_date($date_string) { if (empty($date_string)) return ''; t
                                     <div class="extra-content-wrapper">
                                         <div class="extra-buttons-container">
                                             <?php if (!empty(trim($jazyk_content))): ?>
-                                                <button type="button" class="extra-button" data-target="jazyk-<?php echo $index; ?>">Jazyk</button>
+                                                <button type="button" class="extra-button" data-target="jazyk-<?php echo $index; ?>">Výklad</button>
                                             <?php endif; ?>
                                             <?php if (!empty(trim($inspirace_content))): ?>
                                                 <button type="button" class="extra-button" data-target="inspirace-<?php echo $index; ?>">Inspirace</button>
