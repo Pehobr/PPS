@@ -2,7 +2,7 @@
 .custom-audio-player-wrapper {
     max-width: 450px;
     /* Změna: Přidán horní a zvětšen spodní okraj pro lepší odsazení */
-    margin: 15px auto 25px auto;
+    margin: 10px auto 15px auto;
 }
 
 /* --- Kontejner vlastního přehrávače --- */
@@ -33,7 +33,10 @@
     align-items: center;
     transition: background-color 0.2s ease;
     flex-shrink: 0;
-    margin: 0 10px; /* Upraveno pro mezeru na obou stranách */
+    margin-left: 0px;
+    margin-right: 10px;
+    position: relative;
+    z-index: 1;
 }
 
 .play-pause-btn:hover {
@@ -61,6 +64,7 @@
     height: 8px;
     flex-grow: 1;
     position: relative;
+    margin-right: 12px;
 }
 
 .progress-bar-fill {
