@@ -317,3 +317,72 @@ audio {
         margin-right: 8px;
     }
 }
+/* --- Styly pro extra obsah (Jazyk, Inspirace) --- */
+.extra-content-wrapper {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px dashed #EAE0D5;
+}
+
+.extra-buttons-container {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.extra-button {
+    color: #FFFFFF;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 0.95em;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 8px 20px;
+    border: none;
+    border-radius: 6px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+/* --- Barvy pro jednotlivá tlačítka --- */
+.extra-button[data-target*="jazyk"] {
+    background-color: #6A8D92; /* Klidná šedo-modrá */
+}
+.extra-button[data-target*="jazyk"]:hover {
+    background-color: #58797E;
+}
+
+.extra-button[data-target*="inspirace"] {
+    background-color: #CCA43B; /* Tlumená zlatá */
+}
+.extra-button[data-target*="inspirace"]:hover {
+    background-color: #B99335;
+}
+
+.extra-button.active {
+    transform: translateY(1px);
+    box-shadow: none;
+}
+.extra-button[data-target*="jazyk"].active {
+    background-color: #4a666a;
+}
+.extra-button[data-target*="inspirace"].active {
+     background-color: #a88330;
+}
+
+
+.extra-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-out;
+    background-color: #fdfaf5;
+    border-radius: 5px;
+    border: 1px solid #EAE0D5;
+}
+
+.extra-content-inner {
+    padding: 15px 20px;
+}
+.extra-content-inner p:last-child {
+    margin-bottom: 0;
+}

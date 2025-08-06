@@ -12,7 +12,8 @@ $spreadsheetId = defined('GOOGLE_SHEETS_SPREADSHEET_ID') ? GOOGLE_SHEETS_SPREADS
 $current_domain = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
 $error_message = '';
 $values = [];
-$data_range = 'A2:H1000'; // Vždy načítáme větší rozsah pro vyhledávání
+// Rozšířený rozsah o sloupce pro Jazyk (I) a Inspiraci (J) a další
+$data_range = 'A2:L1000'; 
 
 // --- ZPRACOVÁNÍ URL PARAMETRU ---
 $target_week_monday = null;
@@ -55,25 +56,23 @@ if (function_exists('curl_init')) {
             }
             if (!$found_week) $error_message = 'Požadovaný týden nebyl v archivu nalezen.';
         } else {
-            // --- OPRAVA ZDE: Hledání AKTUÁLNÍHO týdne podle dnešního data ---
+            // Hledání AKTUÁLNÍHO týdne podle dnešního data
             $today = new DateTime('today');
-            $current_week_number = $today->format('o-W'); // Získáme ISO týden a rok
+            $current_week_number = $today->format('o-W');
 
             foreach ($all_rows as $index => $row) {
                 if (empty($row[0])) continue;
                 try {
                     $row_date_obj = new DateTime($row[0]);
                     if ($row_date_obj->format('o-W') === $current_week_number) {
-                        // Našli jsme den v aktuálním týdnu. Teď najdeme pondělí tohoto týdne.
                         $monday_of_this_week = (clone $row_date_obj)->modify('monday this week');
-                        // Najdeme index pondělí a vezmeme 7 následujících řádků
                         foreach($all_rows as $sub_index => $sub_row) {
                             if(empty($sub_row[0])) continue;
                             $sub_row_date = new DateTime($sub_row[0]);
                             if($sub_row_date->format('Y-m-d') === $monday_of_this_week->format('Y-m-d')) {
                                 $values = array_slice($all_rows, $sub_index, 7);
                                 $found_week = true;
-                                break 2; // Ukončí oba cykly
+                                break 2;
                             }
                         }
                     }
@@ -113,7 +112,7 @@ function format_czech_date($date_string) { if (empty($date_string)) return ''; t
             <?php endif; ?>
 
             <?php if (!empty($values)): ?>
-                <?php foreach ($values as $row): ?>
+                <?php foreach ($values as $index => $row): ?>
                     <?php
                     if (empty(array_filter($row))) continue;
                     $date = $row[0] ?? '';
@@ -124,6 +123,12 @@ function format_czech_date($date_string) { if (empty($date_string)) return ''; t
                     $audio_evangelista = $row[4] ?? '';
                     $audio_kapitola_vers = $row[5] ?? '';
                     $has_audio = !empty($audio_evangelista) && !empty($audio_kapitola_vers);
+
+                    // ---- ZDE ZAČÍNÁ NOVÝ KÓD ----
+                    $jazyk_content = $row[7] ?? ''; // Sloupec I
+                    $inspirace_content = $row[8] ?? ''; // Sloupec J
+                    $has_extra_content = !empty(trim($jazyk_content)) || !empty(trim($inspirace_content));
+                    // ---- ZDE KONČÍ NOVÝ KÓD ----
                     
                     $title = $title_from_sheet;
                     if ($day_name_cz === 'Sobota' && empty(trim($title_from_sheet))) { $title = 'Otázky k zamyšlení'; } 
@@ -161,6 +166,36 @@ function format_czech_date($date_string) { if (empty($date_string)) return ''; t
                                 ?>
                                 <p><?php echo $final_content; ?></p>
                                 
+                                <?php /* --- ZAČÁTEK BLOKU PRO NOVÁ TLAČÍTKA --- */ ?>
+                                <?php if ($has_extra_content): ?>
+                                    <div class="extra-content-wrapper">
+                                        <div class="extra-buttons-container">
+                                            <?php if (!empty(trim($jazyk_content))): ?>
+                                                <button type="button" class="extra-button" data-target="jazyk-<?php echo $index; ?>">Jazyk</button>
+                                            <?php endif; ?>
+                                            <?php if (!empty(trim($inspirace_content))): ?>
+                                                <button type="button" class="extra-button" data-target="inspirace-<?php echo $index; ?>">Inspirace</button>
+                                            <?php endif; ?>
+                                        </div>
+                                        
+                                        <?php if (!empty(trim($jazyk_content))): ?>
+                                            <div id="jazyk-<?php echo $index; ?>" class="extra-content">
+                                                <div class="extra-content-inner">
+                                                    <?php echo wp_kses_post($jazyk_content); /* Bezpečné vypsání HTML */ ?>
+                                                </div>
+                                            </div>
+                                        <?php endif; ?>
+                                        <?php if (!empty(trim($inspirace_content))): ?>
+                                            <div id="inspirace-<?php echo $index; ?>" class="extra-content">
+                                                 <div class="extra-content-inner">
+                                                    <?php echo wp_kses_post($inspirace_content); /* Bezpečné vypsání HTML */ ?>
+                                                 </div>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endif; ?>
+                                <?php /* --- KONEC BLOKU PRO NOVÁ TLAČÍTKA --- */ ?>
+
                                 <?php if ($day_name_cz === 'Sobota'): ?>
                                     <div class="form-link-wrapper">
                                         <?php
@@ -193,5 +228,4 @@ function format_czech_date($date_string) { if (empty($date_string)) return ''; t
 <script src="<?php echo get_stylesheet_directory_uri(); ?>/js/tyden.js"></script>
 
 <?php
-
 ?>
