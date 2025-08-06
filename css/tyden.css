@@ -69,7 +69,7 @@
 }
 
 .content-inner {
-    padding: 25px;
+    padding: 12px;
 }
 
 .content-inner p {
@@ -399,11 +399,15 @@ audio {
 }
 
 .extra-content-inner {
-    padding: 15px 20px;
+    padding: 7px 7px;
 }
 .extra-content-inner p {
     margin-bottom: 0.7em; /* Vytvoří mezeru pod každým odstavcem */
 }
 .extra-content-inner p:last-child {
     margin-bottom: 0;
+}
+/* --- Oprava vnitřního odsazení (padding) --- */
+.content-inner > * {
+    box-sizing: border-box;
 }
