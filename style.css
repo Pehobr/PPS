@@ -60,6 +60,17 @@ Updated: 2025-08-04 16:34:40
         display: block; /* Zobrazíme naše tlačítko */
     }
 
+    /* === NOVÁ OPRAVA: Zarovnání nadpisu vlevo === */
+    #branding {
+        text-align: left;
+    }
+    
+    #site-title {
+        padding-left: 20px;
+        padding-right: 20px; /* Vytvoří místo pro ikonu menu */
+    }
+    /* ======================================= */
+
     /* OPRAVA: Skryjeme POUZE původní hamburger ikonu, ne celé menu */
     #header-aside .menu-toggle {
         display: none !important;
