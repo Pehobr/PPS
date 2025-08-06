@@ -139,3 +139,13 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+// --- LOGIKA PRO VLASTNÍ MOBILNÍ MENU ---
+    const mobilniTlacitko = document.getElementById('vlastni-mobilni-toggle');
+    // OPRAVA: Cílíme na kontejner #header-aside, který budeme zobrazovat a skrývat
+    const menuKontejner = document.getElementById('header-aside'); 
+
+    if (mobilniTlacitko && menuKontejner) {
+        mobilniTlacitko.addEventListener('click', function() {
+            menuKontejner.classList.toggle('mobil-menu-otevrene');
+        });
+    }

@@ -11,3 +11,115 @@ Updated: 2025-08-04 16:34:40
 
 */
 
+/*
+============================================================
+ VLASTNÍ MOBILNÍ MENU (FINÁLNÍ OPRAVENÁ VERZE)
+============================================================
+*/
+
+/* Nastavíme hlavnímu kontejneru webu relativní pozici, 
+   aby se naše tlačítko pozicovalo vůči němu, ne vůči oknu. */
+#page-wrapper {
+    position: relative;
+}
+
+/* --- Tlačítko (Hamburger ikona) --- */
+#vlastni-mobilni-toggle {
+    display: none;
+    position: absolute; /* ZMĚNA: Pozice vůči #page-wrapper */
+    top: 0px;
+    right: 15px;
+    z-index: 1000;
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+    background-color: #6A8D92; /* Změna barvy na šedo-modrou */
+    padding: 8px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+#vlastni-mobilni-toggle span {
+    display: block;
+    background-color: #fff;
+    height: 3px;
+    width: 100%;
+    margin-bottom: 3px;
+    transition: all 0.3s ease-in-out;
+}
+
+#vlastni-mobilni-toggle span:last-child {
+    margin-bottom: 0;
+}
+
+
+/* --- Zobrazení a chování na mobilu --- */
+@media (max-width: 969px) {
+
+    #vlastni-mobilni-toggle {
+        display: block; /* Zobrazíme naše tlačítko */
+    }
+
+    /* OPRAVA: Skryjeme POUZE původní hamburger ikonu, ne celé menu */
+    #header-aside .menu-toggle {
+        display: none !important;
+    }
+    
+    /* Původní menu z šablony skryjeme */
+    #header-aside {
+        display: none;
+    }
+
+    /* OPRAVA: Při otevření zobrazíme kontejner menu */
+    #header-aside.mobil-menu-otevrene {
+        display: block;
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 80%;
+        max-width: 300px;
+        height: 100%;
+        background-color: #F5EFE6;
+        box-shadow: -3px 0 10px rgba(0,0,0,0.2);
+        z-index: 999;
+        padding-top: 80px;
+    }
+
+    #header-aside.mobil-menu-otevrene #menu-primary-items {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    #header-aside.mobil-menu-otevrene #menu-primary-items li {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    #header-aside.mobil-menu-otevrene #menu-primary-items li a {
+        display: block;
+        padding: 15px;
+        color: #555;
+        font-size: 1.3em;
+        font-family: 'Lora', serif;
+    }
+    
+    #header-aside.mobil-menu-otevrene #menu-primary-items li a:hover {
+        background-color: #d88c4b;
+        color: #fff;
+    }
+}
+
+
+/* --- Oprava pozice pro přihlášené uživatele --- */
+@media (max-width: 969px) {
+  body.admin-bar #vlastni-mobilni-toggle {
+    top: 57px; /* 32px lišta + 25px odsazení */
+  }
+}
+
+@media (max-width: 782px) {
+  body.admin-bar #vlastni-mobilni-toggle {
+    top: 71px; /* 46px lišta + 25px odsazení */
+  }
+}
