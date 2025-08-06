@@ -214,12 +214,7 @@ audio {
 /* === Pro tablety a menší zařízení (šířka do 768px) === */
 @media (max-width: 768px) {
 
-    /* === Vlastní velikost hlavního nadpisu v mobilu === */
-    #site-title {
-        font-size: 20px !important; /* Tuto hodnotu si můžete libovolně změnit */
-    }
-
-    /* --- Hlavní kontejnery stránek (Týden, Kalendář, Otázky) --- */
+       /* --- Hlavní kontejnery stránek (Týden, Kalendář, Otázky) --- */
     .accordion-container,
     .calendar-container,
     .question-form-container {

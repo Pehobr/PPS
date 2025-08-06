@@ -68,6 +68,7 @@ Updated: 2025-08-04 16:34:40
     #site-title {
         padding-left: 20px;
         padding-right: 20px; /* Vytvoří místo pro ikonu menu */
+        font-size: 20px !important; /* TOTO JSTE PŘIDALI */
     }
     /* ======================================= */
 
@@ -133,4 +134,15 @@ Updated: 2025-08-04 16:34:40
   body.admin-bar #vlastni-mobilni-toggle {
     top: 71px; /* 46px lišta + 25px odsazení */
   }
+}
+
+/* Styly pro obrazovky o maximální šířce 768px (typicky mobilní zařízení) */
+@media (max-width: 782px) {
+  #site-title {
+    font-size: 20px !important;
+  }
+}
+
+.site-footer, .footer {
+  display: none;
 }
