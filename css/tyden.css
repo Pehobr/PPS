@@ -317,7 +317,7 @@ audio {
         margin-right: 8px;
     }
 }
-/* --- Styly pro extra obsah (Jazyk, Inspirace) --- */
+/* --- Styly pro extra obsah (Výklad, Inspirace, Slovník) --- */
 .extra-content-wrapper {
     margin-top: 25px;
     padding-top: 20px;
@@ -359,6 +359,15 @@ audio {
     background-color: #B99335;
 }
 
+/* --- NOVÁ BARVA PRO SLOVNÍK --- */
+.extra-button[data-target*="slovnik"] {
+    background-color: #2F6B55; /* Tmavě zelená */
+}
+.extra-button[data-target*="slovnik"]:hover {
+    background-color: #255443;
+}
+
+
 .extra-button.active {
     transform: translateY(1px);
     box-shadow: none;
@@ -368,6 +377,9 @@ audio {
 }
 .extra-button[data-target*="inspirace"].active {
      background-color: #a88330;
+}
+.extra-button[data-target*="slovnik"].active { /* --- NOVÉ --- */
+     background-color: #1c4033;
 }
 
 
