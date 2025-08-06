@@ -3,6 +3,7 @@
  * Template Name: Formulář s otázkami
  * Description: Šablona pro zobrazení formuláře s otázkami ze soboty a odeslání odpovědí e-mailem.
  */
+get_header();
 
 // --- Pomocné funkce ---
 function e_safe_q($string) { return htmlspecialchars($string, ENT_QUOTES, 'UTF-8'); }
@@ -182,4 +183,5 @@ get_header();
 </div>
 
 <?php
+get_footer();
 ?>

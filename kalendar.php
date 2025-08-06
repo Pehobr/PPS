@@ -128,3 +128,7 @@ if (function_exists('curl_init')) {
 
 <?php
 ?>
+
+<?php
+get_footer();
+?>

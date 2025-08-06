@@ -89,14 +89,16 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        volumeSlider.addEventListener('input', (e) => {
-            audio.volume = e.target.value;
-        });
+        if (volumeSlider) {
+            volumeSlider.addEventListener('input', (e) => {
+                audio.volume = e.target.value;
+            });
+        }
         
         togglePlayPauseIcon();
     });
 
-    // --- LOGIKA PRO TLAČÍTKA JAZYK/INSPIRACE ---
+    // --- LOGIKA PRO TLAČÍTKA JAZYK/INSPIRACE/SLOVNÍK ---
     const extraButtons = document.querySelectorAll('.extra-button');
 
     extraButtons.forEach(button => {
@@ -107,7 +109,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if (content) {
                 const wasActive = button.classList.contains('active');
                 
-                // Zavře ostatní extra-obsahy v rámci jednoho dne
                 const parentWrapper = button.closest('.extra-content-wrapper');
                 if (parentWrapper) {
                     parentWrapper.querySelectorAll('.extra-button').forEach(btn => {
@@ -118,7 +119,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     });
                 }
 
-                // Přepne stav kliknutého tlačítka
                 if (wasActive) {
                     button.classList.remove('active');
                     content.style.maxHeight = null;
@@ -127,25 +127,24 @@ document.addEventListener('DOMContentLoaded', function () {
                     content.style.maxHeight = content.scrollHeight + "px";
                 }
 
-                // --- TOTO JE NOVÁ, KLÍČOVÁ ČÁST ---
-                // Najde hlavní kontejner a po chvilce (až se dokončí animace) mu přepočítá výšku.
                 const mainAccordionContent = button.closest('.accordion-content');
                 if (mainAccordionContent) {
                     setTimeout(function() {
                         mainAccordionContent.style.maxHeight = mainAccordionContent.scrollHeight + "px";
-                    }, 400); // Čas v milisekundách, měl by odpovídat času animace v CSS
+                    }, 400); 
                 }
             }
         });
     });
-});
-// --- LOGIKA PRO VLASTNÍ MOBILNÍ MENU ---
+    
+    // --- FINÁLNÍ OPRAVENÁ LOGIKA PRO VLASTNÍ MOBILNÍ MENU ---
     const mobilniTlacitko = document.getElementById('vlastni-mobilni-toggle');
-    // OPRAVA: Cílíme na kontejner #header-aside, který budeme zobrazovat a skrývat
     const menuKontejner = document.getElementById('header-aside'); 
 
     if (mobilniTlacitko && menuKontejner) {
         mobilniTlacitko.addEventListener('click', function() {
+            // Přepneme třídu, která menu zobrazí nebo skryje
             menuKontejner.classList.toggle('mobil-menu-otevrene');
         });
     }
+}); // <-- Zde správně končí listener 'DOMContentLoaded'
